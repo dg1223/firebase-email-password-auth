@@ -5,11 +5,12 @@ import app from "../../firebase/firebase.config";
 const auth = getAuth(app);
 
 const Register = () => {
-  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleEmailChange = (event) => {
     // console.log(event.target.value);
-    setEmail(event.target.value);
+    // setEmail(event.target.value);
   };
 
   const handlePasswordBlur = (event) => {
@@ -18,18 +19,37 @@ const Register = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setSuccess("");
+    setError("");
+    // 2. collect form data
     const email = event.target.email.value;
     const password = event.target.password.value;
     console.log(email, password);
+    // validate password
+    if (!/(?=.*[A-Z])/.test(password)) {
+      setError("Please add at least one uppercase");
+      return;
+    } else if (!/(?=.*[0-9])/.test(password)) {
+      setError("Please add at least one number");
+      return;
+    } else if (password.length < 6) {
+      setError("Please add at least 6 characters in your passsword");
+      return;
+    }
 
-    // create user in firebase
+    // 3. create user in firebase
     createUserWithEmailAndPassword(auth, email, password)
       .then((result) => {
         const loggedUser = result.user;
         console.log(loggedUser);
+        setError("");
+        // clear form field
+        event.target.reset();
+        setSuccess("User has been created successfully");
       })
       .catch((error) => {
         console.log(error);
+        setError(error.message);
       });
   };
 
@@ -44,6 +64,7 @@ const Register = () => {
           name="email"
           id="email"
           placeholder="Your Email"
+          required
         />
         <br />
         <input
@@ -53,10 +74,13 @@ const Register = () => {
           name="passowrd"
           id="password"
           placeholder="Your Password"
+          required
         />
         <br />
         <input className="btn btn-primary" type="submit" value="Register" />
       </form>
+      <p className="text-danger">{error}</p>
+      <p className="text-primary">{success}</p>
     </div>
   );
 };
